@@ -42,5 +42,15 @@ jobs:
             ${{ env.IMAGE }}:17.10-postgis
             ${{ env.IMAGE }}:17.10-postgis-${{ github.sha }}
 
+      # CNPG runs this operand without a registry credential. The package contains
+      # no runtime secrets; its source is linked to this public provider fork.
+      - name: Make operand package pullable by CNPG
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api --method PATCH \
+            "/orgs/${{ github.repository_owner }}/packages/container/cnpg-postgis" \
+            -f visibility=public
+
       - name: Publish immutable digest
         run: echo "${{ env.IMAGE }}@${{ steps.build.outputs.digest }}" >> "$GITHUB_STEP_SUMMARY"
