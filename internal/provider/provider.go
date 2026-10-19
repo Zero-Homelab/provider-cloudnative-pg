@@ -143,6 +143,7 @@ func (p *Provider) Sync(c *controller.Context) error {
 	if custom.PostgresConfiguration != nil {
 		pg.Spec.PostgresConfiguration = *custom.PostgresConfiguration
 	}
+	applySuperuserAccess(pg, custom.SuperuserAccess)
 
 	if custom.Managed != nil {
 		pg.Spec.Managed = custom.Managed
@@ -232,6 +233,12 @@ func (p *Provider) Sync(c *controller.Context) error {
 	}
 
 	return barman.SyncScheduledBackups(c)
+}
+
+func applySuperuserAccess(pg *cnpgv1.Cluster, enabled *bool) {
+	if enabled != nil {
+		pg.Spec.EnableSuperuserAccess = *enabled
+	}
 }
 
 func buildClusterSpec(engine corev1alpha1.ComponentSpec, custom components.CNPGCustomSpec) cnpgv1.ClusterSpec {

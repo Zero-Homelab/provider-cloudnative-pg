@@ -1042,6 +1042,8 @@ spec:
               type: object
             resizeInUseVolumes:
               type: boolean
+            superuserAccess:
+              type: boolean
           type: object
       type: postgresql
   defaultVersion: "17.10"

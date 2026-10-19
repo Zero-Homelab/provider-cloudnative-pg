@@ -17,6 +17,11 @@ import (
 // Add fields here when the postgresql component type needs custom configuration
 // beyond what the base Instance spec provides.
 type CNPGCustomSpec struct {
+	// SuperuserAccess permits CNPG to manage the postgres superuser credential.
+	// When enabled without a superuserSecret, CNPG creates a random Secret itself.
+	// The provider intentionally exposes no password value or Secret name.
+	SuperuserAccess *bool `json:"superuserAccess,omitempty"`
+
 	ResizeInUseVolumes *bool `json:"resizeInUseVolumes,omitempty"`
 
 	PersistentVolumeClaimTemplate *corev1.PersistentVolumeClaimSpec `json:"pvcTemplate,omitempty"`
