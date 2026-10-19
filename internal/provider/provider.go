@@ -237,7 +237,7 @@ func (p *Provider) Sync(c *controller.Context) error {
 
 func applySuperuserAccess(pg *cnpgv1.Cluster, enabled *bool) {
 	if enabled != nil {
-		pg.Spec.EnableSuperuserAccess = *enabled
+		pg.Spec.EnableSuperuserAccess = enabled
 	}
 }
 
