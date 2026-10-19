@@ -22,7 +22,7 @@ componentTypes:
       - version: "17.10"
         image: ghcr.io/cloudnative-pg/postgresql:17.10-standard-trixie
       - version: "17.10-postgis"
-        image: ghcr.io/zero-homelab/cnpg-postgis@sha256:31607e7fca236f86ca2933655012e2974dc9e0a35f47b57f8b3f03e6f49a1acc
+        image: ghcr.io/zero-homelab/cnpg-postgis:17.10-postgis@sha256:31607e7fca236f86ca2933655012e2974dc9e0a35f47b57f8b3f03e6f49a1acc
       - version: "18.4"
         image: ghcr.io/cloudnative-pg/postgresql:18.4-standard-trixie
 
