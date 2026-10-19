@@ -22,6 +22,11 @@ type CNPGCustomSpec struct {
 	// The provider intentionally exposes no password value or Secret name.
 	SuperuserAccess *bool `json:"superuserAccess,omitempty"`
 
+	// ServiceAccountToken reconciles automountServiceAccountToken on the CNPG
+	// ServiceAccount. CNPG 1.30 exposes only ServiceAccount metadata, while its
+	// instance manager requires the projected Kubernetes token.
+	ServiceAccountToken *bool `json:"serviceAccountToken,omitempty"`
+
 	ResizeInUseVolumes *bool `json:"resizeInUseVolumes,omitempty"`
 
 	PersistentVolumeClaimTemplate *corev1.PersistentVolumeClaimSpec `json:"pvcTemplate,omitempty"`

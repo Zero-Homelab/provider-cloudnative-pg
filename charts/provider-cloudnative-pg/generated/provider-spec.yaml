@@ -1042,6 +1042,8 @@ spec:
               type: object
             resizeInUseVolumes:
               type: boolean
+            serviceAccountToken:
+              type: boolean
             superuserAccess:
               type: boolean
           type: object

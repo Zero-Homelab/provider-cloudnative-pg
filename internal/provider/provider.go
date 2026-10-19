@@ -5,9 +5,12 @@ import (
 	"net/url"
 
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	barman "github.com/adityapimpalkar/provider-cloudnative-pg/internal/cnpg/barman"
@@ -222,6 +225,9 @@ func (p *Provider) Sync(c *controller.Context) error {
 	if err := c.Apply(pg); err != nil {
 		return err
 	}
+	if err := syncServiceAccountToken(c, custom.ServiceAccountToken); err != nil {
+		return err
+	}
 
 	if err := syncPodMonitor(c, pg); err != nil {
 		return err
@@ -239,6 +245,49 @@ func applySuperuserAccess(pg *cnpgv1.Cluster, enabled *bool) {
 	if enabled != nil {
 		pg.Spec.EnableSuperuserAccess = enabled
 	}
+}
+
+// syncServiceAccountToken keeps the token setting outside the limited CNPG
+// ServiceAccountTemplate API. Existing accounts remain owned by CNPG; newly
+// created accounts are owned by the Instance via Context.Apply. In both cases
+// the provider owns only automountServiceAccountToken.
+func syncServiceAccountToken(c *controller.Context, enabled *bool) error {
+	if enabled == nil {
+		return nil
+	}
+
+	serviceAccount := &corev1.ServiceAccount{}
+	if err := c.Client().Get(c.Context(), client.ObjectKey{Name: c.Name(), Namespace: c.Namespace()}, serviceAccount); err != nil {
+		if !apierrors.IsNotFound(err) {
+			return fmt.Errorf("get CNPG ServiceAccount: %w", err)
+		}
+
+		serviceAccount = &corev1.ServiceAccount{
+			ObjectMeta:                   c.ObjectMeta(c.Name()),
+			AutomountServiceAccountToken: enabled,
+		}
+		if err := c.Apply(serviceAccount); err != nil {
+			return fmt.Errorf("create CNPG ServiceAccount: %w", err)
+		}
+		return nil
+	}
+
+	// Context.Apply would replace the existing CNPG controller owner reference.
+	// Apply a minimal object instead, so CNPG retains ownership and this provider
+	// owns just the automount field.
+	return c.Client().Apply(c.Context(), client.ApplyConfigurationFromUnstructured(serviceAccountTokenApplyObject(c.Name(), c.Namespace(), *enabled)), client.FieldOwner("provider-"+common.ProviderName), client.ForceOwnership)
+}
+
+func serviceAccountTokenApplyObject(name, namespace string, enabled bool) *unstructured.Unstructured {
+	return &unstructured.Unstructured{Object: map[string]any{
+		"apiVersion": "v1",
+		"kind":       "ServiceAccount",
+		"metadata": map[string]any{
+			"name":      name,
+			"namespace": namespace,
+		},
+		"automountServiceAccountToken": enabled,
+	}}
 }
 
 func buildClusterSpec(engine corev1alpha1.ComponentSpec, custom components.CNPGCustomSpec) cnpgv1.ClusterSpec {
