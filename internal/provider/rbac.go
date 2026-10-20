@@ -49,6 +49,9 @@ package provider
 // Pods (the runtime counts labelled component pods into Instance status.components):
 // +kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch
 
+// ServiceAccounts (CNPG instance-manager token compatibility):
+// +kubebuilder:rbac:groups="",resources=serviceaccounts,verbs=get;list;watch;create;patch
+
 // Prometheus Operator PodMonitors (spec.topology.parameters.monitoring.prometheus):
 // +kubebuilder:rbac:groups=monitoring.coreos.com,resources=podmonitors,verbs=get;list;watch;create;update;patch;delete
 
